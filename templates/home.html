@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Drug Discovery Console</title>
+
+  <!-- Bootstrap & Fonts -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Montserrat:wght@300;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      color: #caffb9;
+      font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* === Matrix Canvas Background === */
+    #matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: black;
+    }
+    /* ===== ANNOUNCEMENT BAR ===== */
+.announcement-bar {
+  width: 100%;
+  background: rgba(0, 20, 10, 0.9);
+  color: #00ff88;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  /*text-shadow: 0 0 8px #00ff88;*/
+  padding: 8px 0;
+  border-bottom: 1px solid #00ff88;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+    .announcement-bar .icon {
+      margin-left: 15px;
+      margin-right: 10px;
+      animation: pulse 1.8s infinite alternate;
+    }
+
+    .announcement-bar span {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: scrollTitle 50s linear infinite;
+    }
+
+    @keyframes scrollTitle {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* === Boot-up Animation === */
+    .dashboard {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+      width: 95%;
+      max-width: 1300px;
+      margin: 40px auto;
+      border-radius: 20px;
+      border: 1px solid #00ff88;
+      box-shadow: 0 0 40px rgba(0, 255, 136, 0.25);
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      transform: scale(0.95);
+      animation: bootUp 1.5s ease forwards;
+    }
+
+    @keyframes bootUp {
+      0% {
+        opacity: 0;
+        transform: scale(0.95);
+        filter: brightness(0.2);
+      }
+      70% {
+        opacity: 1;
+        transform: scale(1.02);
+        filter: brightness(1.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+      }
+    }
+
+    .panel, .results-panel {
+      background: rgba(0, 15, 0, 0.85);
+      padding: 25px;
+    }
+
+    .panel {
+      border-right: 1px solid rgba(0, 255, 136, 0.3);
+    }
+
+    .header {
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      font-size: 1.6rem;
+      color: #00ff88;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px #00ff88;
+    }
+
+    label {
+      color: #b9f6ca;
+      font-weight: 500;
+    }
+
+    input[type="text"], input[type="file"] {
+      background: #111;
+      border: 1px solid #00ff88;
+      color: #d1f7c4;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    input::placeholder {
+      color: #777;
+    }
+
+    button {
+      background: #00ff88;
+      color: #000;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #00cc6a;
+      transform: scale(1.03);
+    }
+
+    /* === Futuristic Console === */
+    #loading {
+      display: none;
+      margin-top: 20px;
+      background: #001803;
+      padding: 15px;
+      border: 1px solid #00ff88;
+      border-radius: 10px;
+      font-family: 'Orbitron', sans-serif;
+      color: #00ff88;
+      text-shadow: 0 0 5px #00ff88;
+      height: 180px;
+      overflow-y: auto;
+    }
+   
+
+    #console-text {
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+    }
+
+    #loading::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #loading::-webkit-scrollbar-thumb {
+      background-color: #00ff88;
+      border-radius: 5px;
+    }
+
+    #error-message {
+      color: #ff6b6b;
+      display: none;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    details summary {
+      color: #00ff88;
+      font-weight: 500;
+      cursor: pointer;
+      margin: 1rem 0;
+      text-shadow: 0 0 8px #00ff88;
+    }
+
+    table {
+      color: #e8ffe8;
+      background: #0b0b0b;
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    table th {
+      background: #00ff88;
+      color: #000;
+      text-align: center;
+    }
+
+    #download-btn {
+      display: none;
+      margin-top: 20px;
+      background: #00ff88;
+      color: #000;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
+    #results {
+      display: none;
+    }
+
+    .glow-box {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #00ff88;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: #00ff88;
+      background: #000;
+      border-top: 1px solid #00ff88;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      box-shadow: 0 -2px 10px rgba(0,255,136,0.15);
+      margin-top: auto;
+    }
+
+    footer a {
+      color: #00ff88;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer a:hover {
+      text-shadow: 0 0 8px #00ff88;
+    }
+
+    @media (max-width: 992px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="matrix"></canvas>
+  <div class="announcement-bar">
+    <div class="icon">🔔</div>
+    <span>🧠 Machine Learning–Based  QSAR  Modeling  for  Androgen  Receptor  Inhibitors  in  Prostate  Cancer  Drug Discovery 
+      ⚠️ This tool is for research and educational purposes only. Predictions do not replace experimental validation.
+    </span>
+    <span>
+      
+    </span>
+  </div>
+  <br>
+  <br>
+  <br>
+
+
+  <div class="dashboard">
+    <!-- Left Panel -->
+    <div class="panel">
+      <div class="header">💊 Molecule Predictor</div>
+      <form id="predict-form" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label>Enter SMILES String</label>
+          <input type="text" id="smiles_input" name="smiles_input" class="form-control" placeholder="e.g. C1=CC=CC=C1   molecule_id" />
+        </div>
+
+        <div class="text-center mb-2">— OR —</div>
+
+        <div class="mb-3">
+          <label>Upload CSV File</label>
+          <input type="file" id="file" name="file" class="form-control" />
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-success px-4">🚀 Run Prediction</button>
+        </div>
+      </form>
+
+      <div id="loading" class="mt-4">
+        <div id="console-text"></div>
+      </div>
+
+      <div id="error-message"></div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="results-panel">
+      <h4 class="text-center" style="color:#00ff88;">📊 Prediction Output</h4>
+      <hr />
+
+      <div id="results">
+        <div class="glow-box">
+          <h6>📄 Original Input</h6>
+          <div id="original-data"></div>
+        </div>
+
+        <details class="glow-box">
+          <summary>🧬 Descriptor Summary (Click to Expand)</summary>
+          <div id="descriptor-data" class="mt-3"></div>
+        </details>
+
+        <div class="glow-box">
+          <h6>🔮 Prediction Results</h6>
+          <div id="prediction-data"></div>
+        </div>
+
+        <div class="text-center">
+          <a id="download-btn" href="/download" class="btn btn-success">⬇️ Download CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    ⚙️ Modeled and Developed  with 💚 by Hezekiah Odetunde
+  </footer>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Matrix Background Animation -->
+  <script>
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const letters = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const fontSize = 14;
+    let columns = Math.floor(canvas.width / fontSize);
+    let drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#00ff88";
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 50);
+  </script>
+
+  <!-- Console Typing + AJAX -->
+  <script>
+    const consoleMessages = [
+      "🔍 Initializing molecular descriptor engine...",
+      "⚙️ Running PaDEL descriptor analysis...",
+      "🧠 Processing fingerprint matrix...",
+      "📡 Generating 2D descriptor vectors...",
+      "🧪 Scaling data and applying models...",
+      "✅ Prediction engine ready."
+    ];
+
+    $(document).ready(function () {
+      $("#predict-form").on("submit", function (e) {
+        e.preventDefault();
+
+        $("#error-message").hide();
+        $("#results").hide();
+        $("#download-btn").hide();
+        $("#loading").fadeIn();
+        $("#console-text").text("");
+
+        let i = 0;
+        function typeConsole() {
+          if (i < consoleMessages.length) {
+            $("#console-text").append(consoleMessages[i] + "\n");
+            $("#loading").scrollTop($("#loading")[0].scrollHeight);
+            i++;
+            setTimeout(typeConsole, 1000);
+          }
+        }
+        typeConsole();
+
+        var formData = new FormData(this);
+
+        $.ajax({
+          url: "/predict",
+          type: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
+            $("#loading").hide();
+
+            if (response.status === "error") {
+              $("#error-message").text(response.message).show();
+              return;
+            }
+
+            $("#original-data").html(response.original_data);
+            $("#descriptor-data").html(response.descriptor_data);
+            $("#prediction-data").html(response.prediction_data);
+
+            if (response.download_ready) $("#download-btn").fadeIn();
+            $("#results").fadeIn();
+          },
+          error: function () {
+            $("#loading").hide();
+            $("#error-message").text("Something went wrong. Try again.").show();
+          },
+        });
+      });
+    });
+  </script>
+</body>
+</html>
