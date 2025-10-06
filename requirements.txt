@@ -10,3 +10,5 @@ streamlit
 rdkit
 padelpy
 lazypredict
+gunicorn
+joblib

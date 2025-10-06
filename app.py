@@ -2,24 +2,31 @@ from flask import Flask, render_template, request, send_file, redirect, url_for,
 import pandas as pd
 import numpy as np
 import pickle
+import joblib
 import io
 import os
 import subprocess
 import tempfile
 import time
+import requests
 
 app = Flask(__name__)
 
 # ----------------------------
 # Load Saved Models
 # ----------------------------
-with open('Regressor_model.kpl', 'rb') as f:
-    regression_model = pickle.load(f)
 
-with open('classification_model.kpl', 'rb') as f:
-    classification_model = pickle.load(f)
+if not os.path.exists("Regressor_model.pkl"):
+    r = requests.get(os.environ['MODEL_DOWNLOAD_URL'])
+    open("Regressor_model.pkl","wb").write(r.content)
+regression_model = joblib.load("Regressor_model.pkl")
 
-with open('scalar.kpl', 'rb') as f:
+if not os.path.exists("classification_model.pkl"):
+    r = requests.get(os.environ['MODEL_DOWNLOAD_URL'])
+    open("classification_model.pkl","wb").write(r.content)
+classification_model = joblib.load("classification_model.pkl")
+
+with open('scalar.pkl', 'rb') as f:
     scaler_model = pickle.load(f)
 
 
