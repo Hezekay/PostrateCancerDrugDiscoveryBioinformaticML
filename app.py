@@ -145,10 +145,12 @@ def predict():
         return jsonify({"status": "error", "message": f"Model prediction failed: {e}"})
 
     # Combination of  results
+    df['Smiles'] = smiles_input
     df['pIC50'] = reg_preds
     df['Remark'] = class_preds
+    
 
-    prediction_data_html = df[['pIC50', 'Remark']].head(5).to_html(
+    prediction_data_html = df[['Smiles' ,'pIC50', 'Remark']].head(5).to_html(
         classes='table table-success table-bordered', index=False
     )
 
