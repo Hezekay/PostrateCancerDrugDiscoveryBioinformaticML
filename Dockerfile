@@ -20,4 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5000
 
 # ✅ Use Gunicorn for production (removes Flask warning)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "--timeout", "300", "--workers", "1", "--threads", "2", "--log-level", "debug", "--bind", "0.0.0.0:5000", "app:app"]
+
