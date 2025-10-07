@@ -1,19 +1,19 @@
-#  lightweight Python 3.11 image
+# Use Python 3.11 (since you’re using that version)
 FROM python:3.11-slim
 
 # Install Java (needed for descriptor generation)
 RUN apt-get update && apt-get install -y default-jre
 
-#  Set working directory
+# Set working directory
 WORKDIR /app
 
-#  Copy your project files into the container
+# Copy all files from your project
 COPY . .
 
-#  Install Python dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-#  Expose Flask's default port
+# Expose port 5000 (Flask default)
 EXPOSE 5000
 
 # Start your Flask app
