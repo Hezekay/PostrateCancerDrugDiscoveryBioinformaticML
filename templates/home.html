@@ -161,6 +161,65 @@
       background: #00cc6a;
       transform: scale(1.03);
     }
+    
+        /* === Dual Molecular Loader === */
+    .dual-loader {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: auto;
+    }
+
+    .ring {
+      position: absolute;
+      border: 4px solid transparent;
+      border-top-color: #00ff88;
+      border-radius: 50%;
+      animation: spin 1.5s linear infinite;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    }
+
+    .ring1 {
+      width: 80px;
+      height: 80px;
+      animation-direction: normal;
+    }
+
+    .ring2 {
+      width: 50px;
+      height: 50px;
+      top: 15px;
+      left: 15px;
+      border-top-color: #00cc6a;
+      animation-direction: reverse;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Subtle pulsing glow */
+    .dual-loader::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      background: #00ff88;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 30px rgba(0,255,136,0.4);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+      50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+    }
+
 
     /* === Futuristic Console === */
     #loading {
@@ -315,8 +374,14 @@
         </div>
       </form>
 
-      <div id="loading" class="mt-4">
-        <div id="console-text"></div>
+      <div id="loading" class="mt-4 text-center">
+        <div class="dual-loader">
+          <div class="ring ring1"></div>
+          <div class="ring ring2"></div>
+        </div>
+        <p style="margin-top: 12px; font-family: 'Orbitron', sans-serif; color: #00ff88; font-size: 0.95rem;">
+          🔄 Running molecular analysis... please wait
+        </p>
       </div>
 
       <div id="error-message"></div>
@@ -359,71 +424,53 @@
 
   <!-- Matrix Background Animation -->
   <script>
-    const canvas = document.getElementById("matrix");
-    const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById("matrix");
+      const ctx = canvas.getContext("2d");
 
-    function resizeCanvas() {
-      canvas.height = window.innerHeight;
-      canvas.width = window.innerWidth;
-    }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    const letters = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const fontSize = 14;
-    let columns = Math.floor(canvas.width / fontSize);
-    let drops = Array(columns).fill(1);
-
-    function drawMatrix() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#00ff88";
-      ctx.font = fontSize + "px monospace";
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
+      function resizeCanvas() {
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
       }
-    }
-    setInterval(drawMatrix, 50);
-  </script>
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
 
-  <!-- Console Typing + AJAX -->
-  <script>
-    const consoleMessages = [
-      "🔍 Initializing molecular descriptor engine...",
-      "⚙️ Running PaDEL descriptor analysis...",
-      "🧠 Processing fingerprint matrix...",
-      "📡 Generating 2D descriptor vectors...",
-      "🧪 Scaling data and applying models...",
-      "✅ Prediction engine ready."
-    ];
+      const letters = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const fontSize = 14;
+      let columns = Math.floor(canvas.width / fontSize);
+      let drops = Array(columns).fill(1);
 
+      function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00ff88";
+        ctx.font = fontSize + "px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = letters.charAt(Math.floor(Math.random() * letters.length));
+          ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+          if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+      }
+      setInterval(drawMatrix, 50);
+    </script>
+
+    <!-- Console Typing + AJAX -->
+    <script>
     $(document).ready(function () {
       $("#predict-form").on("submit", function (e) {
         e.preventDefault();
 
+        // Reset UI
         $("#error-message").hide();
         $("#results").hide();
         $("#download-btn").hide();
         $("#loading").fadeIn();
-        $("#console-text").text("");
 
-        let i = 0;
-        function typeConsole() {
-          if (i < consoleMessages.length) {
-            $("#console-text").append(consoleMessages[i] + "\n");
-            $("#loading").scrollTop($("#loading")[0].scrollHeight);
-            i++;
-            setTimeout(typeConsole, 1000);
-          }
-        }
-        typeConsole();
-
+        // Prepare form data
         var formData = new FormData(this);
 
+        // Send to backend
         $.ajax({
           url: "/predict",
           type: "POST",
@@ -438,6 +485,7 @@
               return;
             }
 
+            // Populate sections
             $("#original-data").html(response.original_data);
             $("#descriptor-data").html(response.descriptor_data);
             $("#prediction-data").html(response.prediction_data);

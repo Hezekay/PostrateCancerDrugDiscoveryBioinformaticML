@@ -170,9 +170,25 @@ def predict():
     except Exception as e:
         return jsonify({"status": "error", "message": f"Model prediction failed: {e}"})
 
-    df['Smiles'] = smiles_input
+    # 🔍 Debug log (optional, helps on Render)
+    print(f"DEBUG: len(df)={len(df)}, len(reg_preds)={len(reg_preds)}, len(class_preds)={len(class_preds)}")
+
+    # ✅ Ensure prediction lengths match dataframe rows
+    pred_len = len(reg_preds)
+    df_len = len(df)
+
+    if pred_len != df_len:
+        print("⚠️ Length mismatch detected between input and predictions. Adjusting...")
+        min_len = min(pred_len, df_len)
+        reg_preds = reg_preds[:min_len]
+        class_preds = class_preds[:min_len]
+        df = df.iloc[:min_len]
+
+    # ✅ Assign predictions safely
+    df['Smiles'] = smiles_input if len(df) == 1 else df['SMILES']
     df['pIC50'] = reg_preds
     df['Remark'] = class_preds
+
 
     prediction_data_html = df[['Smiles', 'pIC50', 'Remark']].head(5).to_html(
         classes='table table-success table-bordered', index=False
