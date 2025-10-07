@@ -7,8 +7,11 @@ RUN apt-get update && apt-get install -y default-jre libgomp1 && rm -rf /var/lib
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy all project files
+COPY . /app
+
+# ✅ Ensure PaDEL-Descriptor folder is copied correctly
+COPY PaDEL-Descriptor /app/PaDEL-Descriptor
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -16,5 +19,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Expose Flask port
 EXPOSE 5000
 
-# Run your Flask app
-CMD ["python", "app.py"]
+# ✅ Use Gunicorn for production (removes Flask warning)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

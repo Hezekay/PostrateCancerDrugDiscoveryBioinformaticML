@@ -33,7 +33,7 @@ with open('scalar.pkl', 'rb') as f:
 # ----------------------------
 # Utility Functions
 # ----------------------------
-def run_padel_descriptor(input_smi, output_csv, padel_jar='PaDEL-Descriptor/PaDEL-Descriptor.jar', fingerprints=True):
+def run_padel_descriptor(input_smi, output_csv, padel_jar = os.path.join(os.getcwd(), 'PaDEL-Descriptor', 'PaDEL-Descriptor.jar'), fingerprints=True):
     """Run PaDEL-Descriptor on input .smi and return DataFrame."""
     if not os.path.exists(input_smi):
         raise FileNotFoundError(f"SMILES file not found: {input_smi}")
@@ -41,7 +41,7 @@ def run_padel_descriptor(input_smi, output_csv, padel_jar='PaDEL-Descriptor/PaDE
         raise FileNotFoundError(f"PaDEL jar not found: {padel_jar}")
 
     cmd = [
-        "java", "-Xms2G", "-Xmx4G", "-jar", padel_jar,
+        "java", "-Xms256M", "-Xmx512M", "-jar", padel_jar,
         "-2d",
         "-dir", os.path.dirname(input_smi),
         "-file", output_csv
@@ -50,10 +50,20 @@ def run_padel_descriptor(input_smi, output_csv, padel_jar='PaDEL-Descriptor/PaDE
         cmd.append("-fingerprints")
 
     print("Running PaDEL-Descriptor... please wait...")
-    subprocess.run(cmd, check=True)
-    print("PaDEL finished generating descriptors")
+    # ✅ Capture output and log errors
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
-    # Load CSV into memory
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"PaDEL-Descriptor failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+        )
+
+    print("PaDEL finished generating descriptors successfully")
+
+    # ✅ Load descriptors into DataFrame
+    if not os.path.exists(output_csv):
+        raise FileNotFoundError("Descriptor CSV not found — PaDEL may have failed silently.")
+
     desc_df = pd.read_csv(output_csv)
     return desc_df
 
