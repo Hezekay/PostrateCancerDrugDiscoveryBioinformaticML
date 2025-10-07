@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
+
   <title> AndroPredict </title>
 
   <!-- Bootstrap & Fonts -->
@@ -33,23 +36,24 @@
       background: black;
     }
     /* ===== ANNOUNCEMENT BAR ===== */
-.announcement-bar {
-  width: 100%;
-  background: rgba(0, 20, 10, 0.9);
-  color: #00ff88;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.9rem;
-  /*text-shadow: 0 0 8px #00ff88;*/
-  padding: 8px 0;
-  border-bottom: 1px solid #00ff88;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-}
+    .announcement-bar {
+      width: 100%;
+      background: rgba(0, 20, 10, 0.9);
+      color: #00ff88;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.9rem;
+      
+      /*text-shadow: 0 0 8px #00ff88;*/
+      padding: 8px 0;
+      border-bottom: 1px solid #00ff88;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
 
     .announcement-bar .icon {
       margin-left: 15px;

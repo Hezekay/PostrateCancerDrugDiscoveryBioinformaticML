@@ -13,9 +13,9 @@ from tempfile import TemporaryDirectory
 
 app = Flask(__name__)
 
-# ----------------------------
-# Load Saved Models
-# ----------------------------
+
+# Loading Saved Models
+
 if not os.path.exists("Regressor_model.pkl"):
     r = requests.get(os.environ['MODEL_DOWNLOAD_URL'])
     open("Regressor_model.pkl", "wb").write(r.content)
@@ -29,9 +29,8 @@ classification_model = joblib.load("classification_model.pkl")
 with open('scalar.pkl', 'rb') as f:
     scaler_model = pickle.load(f)
 
-# ----------------------------
+
 # Utility Functions
-# ----------------------------
 
 def split_smi_file(input_smi, chunk_size=500):
     """Split a .smi file into smaller chunks of `chunk_size` molecules."""
@@ -83,7 +82,7 @@ def run_padel_descriptor(input_smi, output_csv, padel_dir=None, fingerprints=Tru
             df = pd.read_csv(chunk_output)
             all_results.append(df)
 
-            # Clean up to save memory
+            # This will Clean up to save memory space
             os.remove(chunk_file)
 
     final_df = pd.concat(all_results, ignore_index=True)
@@ -98,10 +97,10 @@ def calculate_descriptors(df):
         smi_file = os.path.join(tmpdir, 'input.smi')
         out_file = os.path.join(tmpdir, 'descriptors.csv')
 
-        # Save SMILES to .smi file (PaDEL input)
+        # Saving SMILES to .smi file (PaDEL input)
         df[['SMILES']].to_csv(smi_file, index=False, header=False)
 
-        # Run PaDEL (memory-optimized version)
+        # Runing PaDEL (memory-optimized version)
         desc_df = run_padel_descriptor(input_smi=smi_file, output_csv=out_file)
 
     return desc_df
@@ -113,9 +112,9 @@ def prepare_features(df):
     available_features = [col for col in feature_columns if col in df.columns]
     return df[available_features]
 
-# ----------------------------
+
 # Flask Routes
-# ----------------------------
+
 @app.route('/', methods=['GET'])
 def home():
     return render_template('home.html')
@@ -170,10 +169,10 @@ def predict():
     except Exception as e:
         return jsonify({"status": "error", "message": f"Model prediction failed: {e}"})
 
-    # 🔍 Debug log (optional, helps on Render)
+    # Debugging log, though it is optional but it will helps on Render
     print(f"DEBUG: len(df)={len(df)}, len(reg_preds)={len(reg_preds)}, len(class_preds)={len(class_preds)}")
 
-    # ✅ Ensure prediction lengths match dataframe rows
+    # This ensure that prediction lengths match dataframe rows
     pred_len = len(reg_preds)
     df_len = len(df)
 
@@ -184,7 +183,7 @@ def predict():
         class_preds = class_preds[:min_len]
         df = df.iloc[:min_len]
 
-    # ✅ Assign predictions safely
+    #Assigning predictions safely
     df['Smiles'] = smiles_input if len(df) == 1 else df['SMILES']
     df['pIC50'] = reg_preds
     df['Remark'] = class_preds
