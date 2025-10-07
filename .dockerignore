@@ -1,0 +1,37 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+venv/
+env/
+.venv/
+.Prostate_venv/
+
+# Ignore Git and local config
+.git/
+.gitignore
+
+# Ignore IDE or editor settings
+.vscode/
+.idea/
+
+# Ignore temporary or system files
+*.log
+*.DS_Store
+Thumbs.db
+
+# Ignore build and package folders
+build/
+dist/
+*.egg-info/
+
+# Ignore datasets or models (if large and not needed for deploy)
+data/
+datasets/
+models/
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
