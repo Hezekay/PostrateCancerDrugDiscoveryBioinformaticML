@@ -33,19 +33,28 @@ with open('scalar.pkl', 'rb') as f:
 # ----------------------------
 # Utility Functions
 # ----------------------------
-def run_padel_descriptor(input_smi, output_csv, padel_jar = os.path.join(os.getcwd(), 'PaDEL-Descriptor', 'PaDEL-Descriptor.jar'), fingerprints=True):
+def run_padel_descriptor(input_smi, output_csv, padel_dir=None, fingerprints=True):
     """Run PaDEL-Descriptor on input .smi and return DataFrame."""
+    if padel_dir is None:
+        padel_dir = os.path.join(os.getcwd(), 'PaDEL-Descriptor')
+
+    padel_jar = os.path.join(padel_dir, 'PaDEL-Descriptor.jar')
+    lib_dir = os.path.join(padel_dir, 'lib', '*')
+
     if not os.path.exists(input_smi):
         raise FileNotFoundError(f"SMILES file not found: {input_smi}")
     if not os.path.exists(padel_jar):
         raise FileNotFoundError(f"PaDEL jar not found: {padel_jar}")
 
     cmd = [
-        "java", "-Xms256M", "-Xmx512M", "-jar", padel_jar,
+        "java", "-Xms256M", "-Xmx512M",
+        "-cp", f"{padel_jar}:{lib_dir}",
+        "padeldescriptor.PaDELDescriptorApp",
         "-2d",
         "-dir", os.path.dirname(input_smi),
         "-file", output_csv
     ]
+
     if fingerprints:
         cmd.append("-fingerprints")
 
@@ -55,17 +64,16 @@ def run_padel_descriptor(input_smi, output_csv, padel_jar = os.path.join(os.getc
 
     if result.returncode != 0:
         raise RuntimeError(
-            f"PaDEL-Descriptor failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+            f"Descriptor generation failed: PaDEL-Descriptor failed.\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
 
-    print("PaDEL finished generating descriptors successfully")
+    print("PaDEL finished generating descriptors successfully.")
 
     # ✅ Load descriptors into DataFrame
     if not os.path.exists(output_csv):
         raise FileNotFoundError("Descriptor CSV not found — PaDEL may have failed silently.")
 
-    desc_df = pd.read_csv(output_csv)
-    return desc_df
+    return pd.read_csv(output_csv)
 
 
 def calculate_descriptors(df):
